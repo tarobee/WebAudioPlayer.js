@@ -3,100 +3,147 @@
 */
 
 var WebAudioPlayer = function () {
-  var _context, _audio, _analyser, _source;
+  var _context, _audio, _analyser, _source, _loop, _soundFilePath, _index, _list;
+
+  function _init(list, loop) {
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    _context = new AudioContext();
+    
+    _list = list;
+
+    _loop = loop;
+
+    _index = 0;
+    _audio = new Audio(_soundFilePath + _list[_index]);
+
+    _sourceConnect();
+    _createAnalyser();
+  }
+
+  function _sourceConnect(){
+    _audio.addEventListener('loadstart', function() {
+      var source = _context.createMediaElementSource(_audio);
+      source.connect(_context.destination);
+      source.connect(_analyser);
+    }, false);
+
+    _audio.addEventListener('ended', function() {
+      console.log("ended");
+      console.log(_next);
+      _next();
+    }, false);
+  }
+
+  function _createAudio() {
+    _audio = new Audio(_soundFilePath + _list[_index]);
+    _sourceConnect();
+    _createAnalyser();
+  }
+
+  function _createAnalyser() {
+    _analyser = _context.createAnalyser();
+  }
+
+  function _getTimeDomainData() {
+    var timeDomainData = new Uint8Array(256);
+    _analyser.getByteTimeDomainData(timeDomainData);
+    return timeDomainData;
+  }
+
+  function _getFrequencyData() {
+    var frequencyData = new Uint8Array(256);
+    _analyser.getByteFrequencyData(frequencyData);
+    return frequencyData;
+  }
+
+  function _stop() {
+    if(!_audio.ended) {
+      _audio.pause();
+      _audio.currentTime = 0;
+    }
+  }
+
+  function _play() {
+    _audio.play();
+  }
+
+  function _next() {
+    _index++;
+    if(_index > _list.length - 1) {
+      if(_loop) {
+        _index = 0;
+      }else{
+        _index = _list.length - 1;
+      }
+    }
+    _stop();
+    _createAudio();
+    _audio.play();
+  }
+  
+  function _prev() {
+    _index--;
+    if(_index < 0) {
+      if(_loop) {
+        _index = _list.length - 1;
+      }else{
+        _index = 0;
+      }
+    }
+    _stop();
+    _createAudio();
+    _audio.play();
+  }
+
+  function _pause() {
+    _audio.pause();
+  }
+
+  function _analyser() {
+    return _analyser;
+  }
+
+  function _isPlaying() {
+    var _isPlaying;
+    if(_audio.paused) {
+      _isPlaying = false;
+    }else{
+      _isPlaying = true;
+    }
+    return _isPlaying;
+  }
+
+  function _setSoundFilePath(path) {
+    _soundFilePath = path;
+  }
 
   return {
-    init: function (list, autoPlay, loop, btn) {
-      window.AudioContext = window.AudioContext || window.webkitAudioContext;
-      _context = new AudioContext();
-      
-      this.util.list = list;
-      this.util.index = 0;
-      _audio = new Audio(this.util.soundFilePath + this.util.list[this.util.index]);
+    init: _init,
 
-      _audio.addEventListener('loadstart', function() {
-        var source = _context.createMediaElementSource(_audio);
-        source.connect(_context.destination);
-        source.connect(_analyser);
-      }, false);
+    sourceConnect: _sourceConnect,
 
-      _analyser = _context.createAnalyser();
+    createAudio: _createAudio,
 
-      if(autoPlay) _audio.play();
-    },
+    createAnalyser: _createAnalyser,
 
-    getTimeDomainData: function(){
-      var timeDomainData = new Uint8Array(256);
-      _analyser.getByteTimeDomainData(timeDomainData);
-      return timeDomainData;
-    },
+    getTimeDomainData: _getTimeDomainData,
 
-    getFrequencyData: function(){
-      var frequencyData = new Uint8Array(256);
-      _analyser.getByteFrequencyData(frequencyData);
-      return frequencyData;
-    },
+    getFrequencyData: _getFrequencyData,
 
-    stop: function(){
-      if(!_audio.ended) {
-        _audio.pause();
-        _audio.currentTime = 0;
-      }
-    },
+    stop: _stop,
 
-    play: function(){
-      _audio.play();
-    },
+    play: _play,
 
-    next: function(){
-      this.util.index++;
-      if(this.util.index > this.util.list.length - 1) {
-        this.util.index = this.util.list.length - 1;
-      }else{
-        this.stop();
-        _audio = new Audio(this.util.soundFilePath + this.util.list[this.util.index]);
-        _audio.play();
-      }
-    },
+    next: _next,
 
-    prev: function(){
-      this.util.index--;
-      if(this.util.index < 0) {
-        this.util.index = 0;
-      }else{
-        this.stop();
-        _audio = new Audio(this.util.soundFilePath + this.util.list[this.util.index]);
-        _audio.play();
-      }
-    },
+    prev: _prev,
 
-    pause: function(){
-      _audio.pause();
-    },
+    pause: _pause,
 
-    analyser: function(){
-      return _analyser;
-    },
+    analyser: _analyser,
 
-    util: {
-      get audioFilePath() {
-        return _path;
-      },
-      set audioFilePath(path) {
-        _path = path;
-      },
-      get index() {
-        return _index;
-      },
-      set index(i) {
-        _index = i;
-      },
-      get list() {
-        return _list;
-      },
-      set list(arr) {
-        _list = arr;
-      },
-    }
+    isPlaying: _isPlaying,
+
+    setSoundFilePath: _setSoundFilePath
   }
 }

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <script src="js/WebAudioPlayer.min.js"></script>
+  <script type="text/javascript">
+    window.onload = function(){
+      var audioplayer = new WebAudioPlayer();
+      audioplayer.setSoundFilePath("../sound/");
+      audioplayer.init(['World Beyond - Dark Matter.mp3','Tony_Akano_-_Summer.mp3'], true);
+
+      setInterval(getFloatData, 100);
+
+      audioplayer.analyser.minDecibels = -100;
+      audioplayer.analyser.maxDecibels = -30;
+      audioplayer.analyser.smoothingTimeConstant = 0.9;
+
+      var toggleBtn = document.getElementsByClassName('toggle')[0];
+      toggleBtn.onclick = function(){
+        toggleChange();
+      }
+      var nextBtn = document.getElementsByClassName('next')[0];
+      nextBtn.onclick = function(){
+        audioplayer.next();
+      }
+      var prevBtn = document.getElementsByClassName('prev')[0];
+      prevBtn.onclick = function(){
+        audioplayer.prev();
+      }
+
+      function getFloatData() {
+        var fdata = audioplayer.getFrequencyData();
+        // console.log(fdata);
+        var tdata = audioplayer.getTimeDomainData();
+        // console.log(tdata);
+      }
+
+      function toggleChange() {
+        if(audioplayer.isPlaying()){
+          audioplayer.pause();
+          toggleBtn.innerHTML = "play";
+        }else{
+          audioplayer.play();
+          toggleBtn.innerHTML = "pause";
+        }
+      }
+    }
+  </script>
+  <style type="text/css">
+    .player {
+      padding: 100px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="player">
+    <button class="prev">prev</button>
+    <button class="toggle">play</button>
+    <button class="next">next</button>
+  </div>
+</body>
+</html>
