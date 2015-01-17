@@ -3,7 +3,7 @@
 */
 
 var WebAudioPlayer = function () {
-  var _context, _audio, _analyser, _source, _loop, _soundFilePath, _index, _list;
+  var _context, _audio, _analyser, _source, _loop, _soundFilePath, _index, _list, _currentTime, _duration;
 
   function _init(list, loop) {
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -27,9 +27,19 @@ var WebAudioPlayer = function () {
       source.connect(_analyser);
     }, false);
 
+    _audio.addEventListener('loadedmetadata', function() {
+      _currentTime = _audio.currentTime;
+      _duration = _audio.duration;
+      console.log(_currentTime + " / " + _duration)
+      console.log(_audio.volume)
+    }, false);
+
+    _audio.addEventListener('timeupdate',function() {
+      _currentTime = _audio.currentTime;
+      console.log(_currentTime + " / " + _duration)
+    })
+
     _audio.addEventListener('ended', function() {
-      console.log("ended");
-      console.log(_next);
       _next();
     }, false);
   }
